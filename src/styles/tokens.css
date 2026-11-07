@@ -1,0 +1,31 @@
+/*
+  Warm Editorial Neo-Brutalism (Stitch DESIGN.md), resolved into one palette.
+  The desktop export's colours are kept; three were added or darkened so text meets WCAG AA,
+  checked by tests/unit/tokens.test.ts:
+  - accent (#E05A36) fails 4.5:1 as small text and under white text, so it is used for display
+    type, decoration and fills that carry ink text; accent-strong carries small text and white text.
+  - ink-light is darkened from #78716C (4.45:1) to #6B635E.
+  - sage text uses sage-strong; sage itself is a fill.
+*/
+:root {
+  --surface: #faf6ee;
+  --surface-alt: #f5efeb;
+  --card: #fffdf8;
+  --canvas-warm: #f3e9da;
+  --sand: #ede4cd;
+  --ink: #1c1917;
+  --ink-raised: #2a2522;
+  --ink-muted: #57534e;
+  --ink-light: #6b635e;
+  --on-ink: #faf6ee;
+  --on-ink-muted: #a8a29e;
+  --accent: #e05a36;
+  --accent-strong: #b23f1c;
+  --accent-soft: #fcece6;
+  --tangerine: #f28c38;
+  --sage: #6c7d64;
+  --sage-strong: #4f5e48;
+  --sage-soft: #e3ead9;
+  --success: #0b6b4a;
+  --on-accent-strong: #ffffff;
+}
