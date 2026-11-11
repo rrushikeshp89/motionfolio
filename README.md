@@ -10,7 +10,7 @@
 Warm editorial neo-brutalism, built from Stitch designs, shipped as a fast static site.
 
 [![CI](https://github.com/rrushikeshp89/motionfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/rrushikeshp89/motionfolio/actions/workflows/ci.yml)
-[![Live site](https://img.shields.io/badge/live-rrushikeshp89.github.io%2Fmotionfolio-E05A36?logo=githubpages&logoColor=white)](https://rrushikeshp89.github.io/motionfolio/)
+[![Live site](https://img.shields.io/badge/live-rrushikeshp89.github.io%2Fmotionfolio-E05A36?logo=github&logoColor=white)](https://rrushikeshp89.github.io/motionfolio/)
 [![Lighthouse](https://img.shields.io/badge/Lighthouse%20mobile-98%20%C2%B7%20100%20%C2%B7%20100%20%C2%B7%20100-0B6B4A?logo=lighthouse&logoColor=white)](#-quality-gates)
 [![JS budget](https://img.shields.io/badge/JS-147.6%20kB%20%2F%20150%20kB-1C1917)](#-quality-gates)
 
