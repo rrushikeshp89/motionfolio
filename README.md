@@ -38,19 +38,33 @@ export drives phones. Every section moves, and none of it needs JavaScript to be
 | **Contact**            | Click anywhere and a ping arcs into the funnel counter; copy the email address in one tap.                      |
 
 <p align="center">
-  <img src="docs/images/desktop-hero.png" alt="Desktop hero: the name RUSHIKESH PANCHAL in heavy black type over a dot grid, with Explore work and Email direct buttons and a scrolling ticker" width="100%" />
+  <img src="docs/images/desktop-hero.png" alt="Desktop hero: the name RUSHIKESH PANCHAL in heavy black type over a dot grid; the hovered K has sprung up in terracotta with a warm glow under the custom cursor ring" width="100%" />
+  <br />
+  <sub>Kinetic letters: hover any letter of the name and it springs up in terracotta, under the custom cursor.</sub>
 </p>
 
 <table>
   <tr>
-    <td width="62%"><img src="docs/images/desktop-work.png" alt="Desktop work section: the project list on the left and the Grove HRMS inspector panel with stats and the RBAC simulator on the right" /></td>
-    <td width="38%"><img src="docs/images/mobile.png" alt="Two phone screens: the hero, and the work section with a project tab strip and the bottom tab bar" /></td>
+    <td width="62%"><img src="docs/images/desktop-work.png" alt="Desktop work section: the project list and the Grove HRMS inspector, with a stat tile lifted under the cursor and a toast reading Directory as HR Admin" /></td>
+    <td width="38%"><img src="docs/images/mobile.png" alt="Two phone screens: the hero, and the work section with the CRM tab selected and a toast reading Viewing: LeadHub CRM above the bottom tab bar" /></td>
   </tr>
   <tr>
-    <td align="center"><sub>Desktop: work list and sticky inspector</sub></td>
-    <td align="center"><sub>Phone: hero, project tabs and bottom tab bar</sub></td>
+    <td align="center"><sub>Inspector, shimmer stat lift and a role-switch toast</sub></td>
+    <td align="center"><sub>Phone: hero, project tabs and a toast</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/images/desktop-ethos.png" alt="Desktop How I work section: the middle principle card tilted in 3D toward the cursor, above the dark write-path panel tracing step 03 Permission check" /></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><sub>3D tilt cards that follow the cursor, and the write path tracing itself step by step</sub></td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/images/desktop-stack.png" alt="Tech stack: hovering the TypeScript tag shows a tooltip reading Used in Grove HRMS, LeadHub CRM, Stockroom ERP" width="100%" />
+  <br />
+  <sub>Tech-tag tooltips list the projects that use each skill, worked out from the facts.</sub>
+</p>
 
 ## ⚡ Quick start
 
