@@ -3,6 +3,29 @@
 import { useEffect, useRef, useState } from "react";
 import { fx } from "./fx";
 
+/** Desktops and laptops: a precise pointer that can hover. Phones and tablets keep mailto:. */
+const DESKTOP = "(hover: hover) and (pointer: fine)";
+
+/**
+ * A mailto: link opens the computer's default mail program, and on most desktops none is set up,
+ * so the click does nothing. On desktop, email links therefore open a Gmail compose window in a
+ * new tab, addressed to the link's recipient. Phones keep mailto:, which opens their mail app
+ * (the Gmail app on most of them). The href stays mailto:, so the link still works without
+ * JavaScript, and a modified or middle click is left to the browser.
+ */
+function openEmailOnDesktop(event: MouseEvent) {
+  if (event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const link = (event.target as Element).closest<HTMLAnchorElement>('a[href^="mailto:"]');
+  if (!link || !window.matchMedia(DESKTOP).matches) return;
+  const address = decodeURIComponent(link.href.slice("mailto:".length).split("?")[0] ?? "");
+  if (!address) return;
+  event.preventDefault();
+  const compose = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(address)}`;
+  window.open(compose, "_blank", "noopener,noreferrer");
+  fx.toast("Opening Gmail in a new tab");
+}
+
 const INTERACTIVE =
   "a, button, [role='tab'], label, .char-kinetic, [data-tilt], .tech-tag, [data-cursor]";
 const MAGNETIC_PULL = 0.22;
@@ -14,7 +37,8 @@ const TILT_DEGREES = 5;
  * - magnetic buttons ([data-magnetic]) that lean toward the pointer;
  * - 3D tilt cards ([data-tilt]) that follow the pointer;
  * - a tactile press ripple and blip on [data-tactile];
- * - the toast that fx.toast() fills.
+ * - the toast that fx.toast() fills;
+ * - email links that work on desktop: see openEmailOnDesktop().
  * Pointer effects only run with a fine pointer and motion allowed; the toast always works.
  */
 export function Effects() {
@@ -46,6 +70,7 @@ export function Effects() {
     const root = document.documentElement;
 
     const onClick = (event: MouseEvent) => {
+      openEmailOnDesktop(event);
       const target = (event.target as Element).closest<HTMLElement>("[data-tactile]");
       if (!target) return;
       fx.blip(520);
