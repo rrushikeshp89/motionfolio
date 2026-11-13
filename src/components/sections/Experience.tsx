@@ -33,7 +33,7 @@ export function Experience() {
     <section
       id="experience"
       aria-label="Experience and stack"
-      className="border-b-2 border-ink py-16 md:py-24"
+      className="overflow-x-clip border-b-2 border-ink py-16 md:py-24"
     >
       <div className="mx-auto grid max-w-[90rem] grid-cols-1 gap-16 px-4 md:px-8 lg:grid-cols-2 lg:gap-12">
         <div>

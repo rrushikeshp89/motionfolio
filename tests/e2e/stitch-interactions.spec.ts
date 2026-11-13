@@ -121,6 +121,30 @@ test.describe("feedback", () => {
   });
 });
 
+test.describe("layout", () => {
+  test("nothing widens the page sideways (tooltips, toasts, cursor)", async ({ page }) => {
+    await page.goto("./");
+    await page.evaluate(() =>
+      document
+        .querySelectorAll("[data-reveal]")
+        .forEach((el) => el.setAttribute("data-revealed", "")),
+    );
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test("the phone tab bar sits flush with the bottom of the screen", async ({ page }) => {
+    test.skip(!isMobile(page), "phones only");
+    await page.goto("./");
+    const bar = page.getByRole("navigation", { name: "Sections" });
+    const box = await bar.boundingBox();
+    const height = page.viewportSize()?.height ?? 0;
+    expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(height);
+  });
+});
+
 test.describe("re-renders keep revealed content", () => {
   test("switching projects never hides the work list again", async ({ page }) => {
     test.skip((page.viewportSize()?.width ?? 0) < 1024, "the list shows on wide screens");

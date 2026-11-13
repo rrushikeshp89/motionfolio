@@ -395,6 +395,13 @@
   opacity: 1;
   transform: translateX(-50%) translateY(0) scale(1);
 }
+/* Touch screens have no hover: keep the (invisible) tooltips out of layout entirely, so one at
+   the screen edge can never widen the page and push the fixed tab bar down. */
+@media (hover: none) {
+  .tech-tooltip {
+    display: none;
+  }
+}
 
 /* Tactile press: a quick squeeze ("badgeRipple"), on the scale property so it composes with
    the hover lift and the magnetic translate. */
