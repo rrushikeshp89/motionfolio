@@ -1,10 +1,9 @@
 "use client";
 
-import { animate } from "motion/mini";
-import { useAnimate } from "motion/react-mini";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { fx } from "@/motion/fx";
 import { useReducedMotion } from "@/motion/hooks";
-import { ease } from "@/motion/tokens";
+import { cubicBezier, ease } from "@/motion/tokens";
 
 interface Ping {
   id: number;
@@ -21,22 +20,24 @@ interface Ping {
  */
 export function PingFunnel({ children }: { children: ReactNode }) {
   const areaRef = useRef<HTMLDivElement>(null);
-  const [funnelRef, animateFunnel] = useAnimate<HTMLButtonElement>();
+  const funnelRef = useRef<HTMLButtonElement>(null);
   const nextId = useRef(0);
   const [pings, setPings] = useState<Ping[]>([]);
   const [caught, setCaught] = useState(0);
   const [bump, setBump] = useState(0);
   const reduced = useReducedMotion();
 
-  // A small "gulp" each time the funnel catches something (WAAPI, so it costs almost nothing).
+  // A small "gulp" each time the funnel catches something (native Web Animations API), plus the
+  // Stitch toast with the running count.
   useEffect(() => {
-    if (bump === 0 || reduced || !funnelRef.current) return;
-    animateFunnel(
-      funnelRef.current,
-      { transform: ["scale(0.93) rotate(-3deg)", "scale(1.03) rotate(1deg)", "none"] },
-      { duration: 0.35, ease: "easeOut" },
+    if (bump === 0) return;
+    fx.toast(`Ping received! Count: ${caught}`);
+    if (reduced || !funnelRef.current) return;
+    funnelRef.current.animate(
+      { scale: ["0.93", "1.03", "1"], rotate: ["-3deg", "1deg", "0deg"] },
+      { duration: 350, easing: "ease-out" },
     );
-  }, [bump, reduced, animateFunnel, funnelRef]);
+  }, [bump, caught, reduced]);
 
   const dispatch = useCallback(
     (clientX: number, clientY: number) => {
@@ -56,7 +57,7 @@ export function PingFunnel({ children }: { children: ReactNode }) {
       const ping = { id: nextId.current, x, y, dx: targetX - x, dy: targetY - y };
       setPings((current) => [...current.slice(-11), ping]);
     },
-    [reduced, funnelRef],
+    [reduced],
   );
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export function PingFunnel({ children }: { children: ReactNode }) {
         ref={funnelRef}
         type="button"
         onClick={fromFunnelButton}
-        className="press absolute top-0 right-0 hidden items-center gap-4 rounded-2xl border-2 border-ink bg-card px-5 py-4 text-left sm:flex"
+        className="press absolute top-0 right-0 hidden items-center gap-4 rounded-2xl border-2 border-ink bg-card px-5 py-4 text-left transition-transform duration-300 hover:scale-105 hover:-rotate-1 sm:flex"
       >
         <FunnelGlyph />
         <span>
@@ -112,31 +113,31 @@ export function PingFunnel({ children }: { children: ReactNode }) {
   );
 }
 
-/** One ping: arcs up and over into the funnel (Motion's WAAPI animate), then reports landing. */
+/** One ping: arcs up and over into the funnel (native Web Animations API), then reports landing. */
 function PingDot({ ping, onLand }: { ping: Ping; onLand: (id: number) => void }) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
     const peakY = Math.min(ping.dy, 0) - 90;
-    const controls = animate(
-      node,
-      {
-        transform: [
-          "translate(0px, 0px) scale(0)",
-          `translate(${ping.dx * 0.45}px, ${peakY}px) scale(1.2)`,
-          `translate(${ping.dx}px, ${ping.dy}px) scale(0.5)`,
-        ],
-      },
-      { duration: 0.85, ease: ease.arc },
+    const flight = node.animate(
+      [
+        { transform: "translate(0px, 0px) scale(0)" },
+        { transform: `translate(${ping.dx * 0.45}px, ${peakY}px) scale(1.2)`, offset: 0.45 },
+        { transform: `translate(${ping.dx}px, ${ping.dy}px) scale(0.5)` },
+      ],
+      { duration: 850, easing: cubicBezier(ease.arc), fill: "forwards" },
     );
     let cancelled = false;
-    controls.then(() => {
-      if (!cancelled) onLand(ping.id);
-    });
+    flight.finished.then(
+      () => {
+        if (!cancelled) onLand(ping.id);
+      },
+      () => undefined,
+    );
     return () => {
       cancelled = true;
-      controls.stop();
+      flight.cancel();
     };
   }, [ping, onLand]);
 

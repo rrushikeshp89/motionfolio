@@ -231,6 +231,8 @@ export interface MonumentalStat {
   id: string;
   display: string;
   countTo?: number;
+  /** Decimal places for the count-up (the layout-shift figure counts 0.000 → 0.004). */
+  decimals?: number;
   label: string;
   detail: string;
 }
@@ -243,12 +245,39 @@ export const monumentalStats: readonly MonumentalStat[] = [
 ].map((id) => {
   const metric = getMetric(id);
   const isCls = id === "stockroom-cls";
+  // The CLS metric reads "0.495 → 0.004"; the monument shows the result and names the start.
+  const display = isCls
+    ? (metric.display.split("→").pop()?.trim() ?? metric.display)
+    : metric.display;
+  const decimals = display.split(".")[1]?.length ?? 0;
   return {
     id,
-    // The CLS metric reads "0.495 → 0.004"; the monument shows the result and names the start.
-    display: isCls ? (metric.display.split("→").pop()?.trim() ?? metric.display) : metric.display,
+    display,
     ...(metric.countTo === undefined ? {} : { countTo: metric.countTo }),
+    // A decimal figure with no countTo counts up to its own displayed value.
+    ...(isCls ? { countTo: Number(display), decimals } : {}),
     label: isCls ? "final layout shift, down from 0.495" : metric.label,
     detail: metric.receipt.explanation,
   };
 });
+
+/** "Next.js (App Router)" → "next", "Prisma ORM" → "prisma", "Express.js" → "express". */
+function skillKey(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\(.*?\)/g, "")
+    .replace(/\.js\b/g, "")
+    .replace(/\borm\b/g, "")
+    .trim();
+}
+
+/**
+ * Which flagship projects list a skill in their stack, for the tech-stack tooltips. Derived from
+ * facts.ts, so a tooltip never claims more than the projects show; empty when none match.
+ */
+export function skillUsage(skill: string): string[] {
+  const key = skillKey(skill);
+  return facts.projects
+    .filter((project) => project.stack.some((item) => skillKey(item) === key))
+    .map((project) => (project.slug === "stockroom-erp" ? "Stockroom ERP" : project.name));
+}

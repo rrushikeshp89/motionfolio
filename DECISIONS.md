@@ -25,16 +25,18 @@ Architecture and content decisions for the Motion Portfolio, with the measuremen
 
 ## Motion
 
-- **ADR-006 CSS first, Motion's WAAPI `animate` for the rest.** The first build used Motion's React
+- **ADR-006 CSS first, the Web Animations API for the rest.** The first build used Motion's React
   components (`LazyMotion`, `m.*`, `layoutId`, `AnimatePresence`, `useScroll`): 194.3 kB of gzipped
   JavaScript on `/`, over the 150 kB budget the plan set. Layout projection was most of it. Now:
   - CSS keyframes and transitions for the hero letter rise, panel and row entrances, cell flips,
     sliding indicators (translate by index), hover lifts and the "keystroke" press.
   - A CSS scroll-driven animation for the header's reading-progress line (0 kB of JavaScript;
     browsers without `animation-timeline` simply don't show it).
-  - `motion/mini` (`animate`, `useAnimate`) for the ping flights and the funnel's "gulp".
-  - Plain `requestAnimationFrame` for count-ups.
-    Result: **147.6 kB**, under budget, with every animation the design calls for.
+  - The browser's Web Animations API for the ping flights, the funnel's "gulp", the inspector
+    cross-fade and the RBAC table dip. (This was `motion/mini` until ADR-010 replaced it: the
+    native API does the same job with no library.)
+  - Plain `requestAnimationFrame` for count-ups, including decimals (0.000 → 0.004).
+    Result: **147.2 kB**, under budget, with every animation the design calls for.
 - **ADR-007 Content is visible without JavaScript or motion.** Server HTML holds every section and
   every project panel (inactive ones `hidden`). Scroll reveals apply only when an inline head
   script has set `html.js` and motion is allowed; the same script reveals elements through
@@ -43,6 +45,26 @@ Architecture and content decisions for the Motion Portfolio, with the measuremen
 - **ADR-008 No reveal fallback timer.** An early version revealed everything after 2.5 s "just in
   case". Lighthouse then measured elements mid-fade and failed colour contrast (97). The script is
   inline and does not depend on the bundle, so the timer guarded nothing; it was removed.
+- **ADR-010 Every Stitch interaction, wired once.** A second pass through the desktop and mobile
+  exports' `<style>` and scripts added what the first build had skipped: the custom cursor (dot and
+  lagging ring, growing over interactive elements), kinetic hero letters (hover or tap) with the
+  line's tracking opening on hover, magnetic buttons, 3D pointer tilt on the principle cards (a
+  press tilt on touch), shimmer stat cards, tech-tag hover/press springs and tooltips, the sweeping
+  pipeline beam and growing active step, tactile press ripples, Web Audio blips with a remembered
+  header toggle, toasts, the inspector's fade-out-then-in, ping rings, pulses and the blinking
+  caret. `src/motion/Effects.tsx` handles the pointer effects by event delegation over `data-`
+  attributes (`data-magnetic`, `data-tilt`, `data-tactile`), so there is one listener, not one per
+  element; `src/motion/fx.ts` is a tiny bus for toasts and sound. Pointer effects need a fine
+  pointer and motion allowed; nothing hides the native cursor. Two deliberate differences from
+  Stitch: tooltips say which flagship projects use a skill (derived from `facts.ts`) instead of the
+  mock-up's invented descriptions, and toasts describe what happened rather than claims such as
+  "Super Scope". Dropping the `motion` package paid for all of it (147.6 → 147.2 kB).
+- **ADR-011 Reveals are marked with a data attribute and play as an animation.** Two bugs found
+  while adding the interactions: a class added by the reveal script was wiped whenever React
+  re-rendered the element (the work list vanished after switching projects), and a reveal
+  `transition` overrode the element's own hover transitions. Reveals now set `data-revealed` and
+  run a `reveal` keyframe on the `translate` property, so hover, tilt and magnet transforms
+  compose with them. A regression test covers the first bug.
 
 ## Design tokens
 
@@ -82,12 +104,14 @@ enforcement, Stated limits). The write-path step descriptions are condensed from
 
 ## Measurements (local, this build)
 
-- JavaScript on `/`: **147.6 kB** gzipped (budget 150 kB; `noModule` polyfills excluded).
-- Lighthouse mobile (median of 3): **Performance 98, Accessibility 100, Best Practices 100,
-  SEO 100**; LCP 0.91 s, CLS 0.000, TBT ~155 ms.
-- Tests: 61 unit (schema, contrast, view models, permissions demo); 37 e2e on 1280px and 375px
+- JavaScript on `/`: **147.2 kB** gzipped (budget 150 kB; `noModule` polyfills excluded).
+- Lighthouse mobile (median of 3): **Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100**; LCP 0.91 s, CLS 0.000, TBT ~77 ms.
+- Tests: 61 unit (schema, contrast, view models, permissions demo); 52 e2e on 1280px and 375px
   (axe on home and 404, content, inspector keyboard, RBAC simulator, write path, copy email,
-  funnel, navigation, reduced motion, no JavaScript, reveals, count-up).
+  funnel, navigation, reduced motion, no JavaScript, reveals, count-up, custom cursor, kinetic
+  letters, magnetic buttons, tilt, tooltips, toasts and sound toggle, beam, ripple, re-render
+  regression).
 
 ## Open items
 

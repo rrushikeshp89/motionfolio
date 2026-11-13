@@ -11,8 +11,8 @@ Warm editorial neo-brutalism, built from Stitch designs, shipped as a fast stati
 
 [![CI](https://github.com/rrushikeshp89/motionfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/rrushikeshp89/motionfolio/actions/workflows/ci.yml)
 [![Live site](https://img.shields.io/badge/live-rrushikeshp89.github.io%2Fmotionfolio-E05A36?logo=github&logoColor=white)](https://rrushikeshp89.github.io/motionfolio/)
-[![Lighthouse](https://img.shields.io/badge/Lighthouse%20mobile-98%20%C2%B7%20100%20%C2%B7%20100%20%C2%B7%20100-0B6B4A?logo=lighthouse&logoColor=white)](#-quality-gates)
-[![JS budget](https://img.shields.io/badge/JS-147.6%20kB%20%2F%20150%20kB-1C1917)](#-quality-gates)
+[![Lighthouse](https://img.shields.io/badge/Lighthouse%20mobile-100%20%C2%B7%20100%20%C2%B7%20100%20%C2%B7%20100-0B6B4A?logo=lighthouse&logoColor=white)](#-quality-gates)
+[![JS budget](https://img.shields.io/badge/JS-147.2%20kB%20%2F%20150%20kB-1C1917)](#-quality-gates)
 
 [**View the live site →**](https://rrushikeshp89.github.io/motionfolio/) &nbsp;·&nbsp;
 [Main portfolio](https://rrushikeshp89.github.io) &nbsp;·&nbsp;
@@ -113,28 +113,33 @@ flowchart LR
 - **CSS first.** Letter rises, panel and row entrances, cell flips, sliding indicators and
   hover lifts are CSS keyframes and transitions. The header's progress line is a CSS
   scroll-driven animation, with zero JavaScript.
-- **Motion's WAAPI `animate`** (`motion/mini`) handles what CSS can't: pings arcing into the
-  funnel, and the funnel's little "gulp" when one lands.
+- **The browser's Web Animations API** handles what CSS can't: pings arcing into the funnel,
+  the inspector's cross-fade and the RBAC table's dip, all with no animation library.
+- **Every Stitch interaction is in.** A custom cursor (dot plus lagging ring) that grows over
+  anything clickable, kinetic hero letters, magnetic buttons, 3D tilt cards, shimmering stat
+  cards, tech-tag tooltips, a sweeping pipeline beam, tactile press ripples with optional sound
+  blips (header toggle), and toasts. They are wired once, by event delegation, in
+  `src/motion/Effects.tsx`.
 - **Content never waits on animation.** Everything is in the server HTML. Reveals only apply
   when an inline script has run, and nothing moves or starts hidden under
   `prefers-reduced-motion`. Tests check both cases, plus a no-JavaScript run.
 
-Moving from Motion's React components to this setup took the page from 194 kB to 147.6 kB of
-JavaScript ([ADR-006](DECISIONS.md#motion)).
+Moving from Motion's React components to this setup took the page from 194 kB to 147.2 kB of
+JavaScript, with more animation than before ([ADR-006](DECISIONS.md#motion)).
 
 ## ✅ Quality gates
 
 CI runs every gate on every push and pull request. A push to `main` only deploys if all of them
 pass.
 
-| Gate                  | Result                                                                            |
-| --------------------- | --------------------------------------------------------------------------------- |
-| Lighthouse, mobile    | **98** Performance · **100** Accessibility · **100** Best Practices · **100** SEO |
-| Core Web Vitals (lab) | LCP **0.91 s** · CLS **0.000**                                                    |
-| JavaScript on `/`     | **147.6 kB** gzipped, budget 150 kB                                               |
-| Unit tests            | **61**: schema, palette contrast, view models, permissions demo                   |
-| End-to-end tests      | **37**: axe, keyboard, RBAC, write path, copy email, reduced motion, no-JS        |
-| Third-party requests  | **None**: self-hosted fonts, inline SVG icons, `default-src 'self'` CSP           |
+| Gate                  | Result                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| Lighthouse, mobile    | **100** Performance · **100** Accessibility · **100** Best Practices · **100** SEO |
+| Core Web Vitals (lab) | LCP **0.91 s** · CLS **0.000**                                                     |
+| JavaScript on `/`     | **147.2 kB** gzipped, budget 150 kB                                                |
+| Unit tests            | **61**: schema, palette contrast, view models, permissions demo                    |
+| End-to-end tests      | **52**: axe, keyboard, RBAC, cursor, tilt, magnet, toasts, reduced motion, no-JS   |
+| Third-party requests  | **None**: self-hosted fonts, inline SVG icons, `default-src 'self'` CSP            |
 
 <sub>Lighthouse and bundle figures were measured locally on the build in
 [DECISIONS.md](DECISIONS.md#measurements-local-this-build).</sub>
@@ -167,7 +172,7 @@ MOTIONFOLIO_BASE_PATH="" pnpm build
 
 [Next.js 16](https://nextjs.org) (static export) · [React 19](https://react.dev) ·
 TypeScript (strict) · [Tailwind CSS v4](https://tailwindcss.com) · [Zod](https://zod.dev) ·
-[Motion](https://motion.dev) · [Vitest](https://vitest.dev) ·
+Web Animations API · [Vitest](https://vitest.dev) ·
 [Playwright](https://playwright.dev) + [axe](https://github.com/dequelabs/axe-core) ·
 [Lighthouse](https://developer.chrome.com/docs/lighthouse) · fonts:
 [Outfit](https://fonts.google.com/specimen/Outfit) and

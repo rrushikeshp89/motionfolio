@@ -31,8 +31,9 @@ export function Ethos() {
             <li
               key={principle.title}
               data-reveal=""
+              data-tilt=""
               style={{ "--reveal-index": position } as CSSProperties}
-              className="group flex flex-col rounded-[var(--radius-panel)] border-2 border-ink bg-card p-6 transition-[transform,box-shadow] duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-ink-lg"
+              className="group flex flex-col rounded-[var(--radius-panel)] border-2 border-ink bg-card p-6 hover:shadow-ink-lg"
             >
               <div className="flex items-center justify-between">
                 <p className="label text-accent-strong">Rule // {principle.index}</p>

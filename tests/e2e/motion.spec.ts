@@ -33,9 +33,9 @@ test.describe("motion is optional", () => {
   test("scroll reveals play when motion is allowed", async ({ page }) => {
     await page.goto("./");
     const card = page.locator("#ethos [data-reveal]").first();
-    await expect(card).not.toHaveClass(/is-revealed/);
+    await expect(card).not.toHaveAttribute("data-revealed");
     await card.scrollIntoViewIfNeeded();
-    await expect(card).toHaveClass(/is-revealed/);
+    await expect(card).toHaveAttribute("data-revealed", "");
   });
 
   test("counts metrics up from zero when they scroll into view", async ({ page }) => {

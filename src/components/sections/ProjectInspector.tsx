@@ -4,19 +4,51 @@ import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 
 import type { WorkEntry } from "@/content/portfolio";
 import { Chip } from "@/components/ui/Chip";
 import { Icon } from "@/components/ui/Icon";
+import { PingDot } from "@/components/ui/PingDot";
 import { LinkButton } from "@/components/ui/Button";
 import { CountUp } from "@/motion/CountUp";
+import { fx } from "@/motion/fx";
+import { tagRotation } from "@/motion/tokens";
 import { RoleSimulator } from "./RoleSimulator";
 
 /**
  * The work list and its inspector panel. Desktop: a list of systems on the left, a sticky panel on
  * the right. Mobile: a tab strip above the panel. Both are ARIA tab lists with arrow-key support.
  * Every panel is in the server HTML (inactive ones `hidden`), so all projects are readable and
- * indexable without JavaScript; the active panel rises in (a CSS keyframe) when it changes.
+ * indexable without JavaScript. Switching cross-fades like the Stitch inspector: the shown panel
+ * fades down and out (WAAPI, 150 ms), then the next one rises in (a CSS keyframe). The tab state
+ * updates at once, so keyboard and screen-reader users never wait on the animation.
  */
 export function ProjectInspector({ entries }: { entries: readonly WorkEntry[] }) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setSelected] = useState(0);
+  const [shownIndex, setShownIndex] = useState(0);
+  const panelRef = useRef<HTMLElement | null>(null);
+  const fadeRef = useRef<Animation | null>(null);
   const baseId = useId();
+
+  function setActiveIndex(index: number, announce = false) {
+    setSelected(index);
+    if (announce) {
+      const entry = entries[index];
+      if (entry) fx.toast(`Viewing: ${entry.name}`);
+    }
+    fadeRef.current?.cancel();
+    const panel = panelRef.current;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!panel || reduced || index === shownIndex) {
+      setShownIndex(index);
+      return;
+    }
+    const fade = panel.animate(
+      [
+        { opacity: 1, transform: "none" },
+        { opacity: 0, transform: "translateY(8px)" },
+      ],
+      { duration: 150, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" },
+    );
+    fadeRef.current = fade;
+    fade.onfinish = () => setShownIndex(index);
+  }
   const listRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const stripRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -33,7 +65,7 @@ export function ProjectInspector({ entries }: { entries: readonly WorkEntry[] })
     const next = keys[event.key];
     if (next === undefined) return;
     event.preventDefault();
-    setActiveIndex(next);
+    setActiveIndex(next, true);
     refs.current[next]?.focus();
   }
 
@@ -63,7 +95,7 @@ export function ProjectInspector({ entries }: { entries: readonly WorkEntry[] })
               aria-selected={selected}
               aria-controls={panelId(index)}
               tabIndex={selected ? 0 : -1}
-              onClick={() => setActiveIndex(index)}
+              onClick={() => setActiveIndex(index, true)}
               onMouseEnter={() => setActiveIndex(index)}
               onKeyDown={(event) => onKeyDown(event, listRefs)}
               data-reveal=""
@@ -133,7 +165,7 @@ export function ProjectInspector({ entries }: { entries: readonly WorkEntry[] })
               aria-selected={selected}
               aria-controls={panelId(index)}
               tabIndex={selected ? 0 : -1}
-              onClick={() => setActiveIndex(index)}
+              onClick={() => setActiveIndex(index, true)}
               onKeyDown={(event) => onKeyDown(event, stripRefs)}
               className="relative min-h-11 rounded-lg px-1"
             >
@@ -149,8 +181,9 @@ export function ProjectInspector({ entries }: { entries: readonly WorkEntry[] })
       {/* Panels */}
       <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
         {entries.map((entry, index) =>
-          index === activeIndex ? (
+          index === shownIndex ? (
             <article
+              ref={panelRef}
               key={`${entry.id}-active`}
               id={panelId(index)}
               role="tabpanel"
@@ -183,7 +216,7 @@ function Panel({ entry }: { entry: WorkEntry }) {
     <>
       <div className="flex flex-wrap items-center gap-2 border-b border-ink/15 pb-4">
         <Chip tone="ink">
-          <span aria-hidden="true" className="size-1.5 animate-blink rounded-full bg-accent" />
+          <PingDot className="scale-75" />
           Inspect
         </Chip>
         <span className="label font-normal text-ink-muted">
@@ -207,7 +240,7 @@ function Panel({ entry }: { entry: WorkEntry }) {
           {entry.stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex flex-col-reverse items-center justify-center rounded-xl border border-ink/15 bg-surface-alt px-2 py-3 text-center"
+              className="shimmer flex flex-col-reverse items-center justify-center rounded-xl border border-ink/15 bg-surface-alt px-2 py-3 text-center"
             >
               <dt className="label mt-1 text-[0.625rem] font-normal text-ink-muted">
                 {stat.label}
@@ -260,9 +293,9 @@ function Panel({ entry }: { entry: WorkEntry }) {
 
       <p className="label mt-6 text-ink-muted">Stack</p>
       <ul className="mt-2 flex flex-wrap gap-2">
-        {entry.stack.map((item) => (
-          <li key={item}>
-            <Chip>{item}</Chip>
+        {entry.stack.map((item, index) => (
+          <li key={item} style={{ "--rot": tagRotation(index) } as CSSProperties}>
+            <Chip className="tech-tag">{item}</Chip>
           </li>
         ))}
       </ul>

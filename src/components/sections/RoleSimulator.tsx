@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type CSSProperties } from "react";
+import { useId, useRef, useState, type CSSProperties } from "react";
 import {
   DEMO_FIELD_LABELS,
   DEMO_FIELDS,
@@ -10,11 +10,12 @@ import {
   type DemoRole,
 } from "@/content/roleDemo";
 import { cellFor, isViewer, summarise, visiblePeople } from "@/lib/permissions-demo";
+import { fx } from "@/motion/fx";
 
 /**
  * Grove HRMS in miniature. Pick a role and the sample directory shows only what that role may see:
- * restricted cells flip to a stamp, and the offboarded record slides in for HR. CSS keyframes on
- * remount (keyed by value), so the animation costs no JavaScript.
+ * the table dips and returns, restricted cells flip to a stamp, the offboarded record slides in
+ * for HR, and the switch blips and toasts, as in the Stitch simulator.
  * A native radio group, a real table and a status line, so it works the same without motion.
  */
 export function RoleSimulator({ liveDemoHref }: { liveDemoHref: string }) {
@@ -24,15 +25,32 @@ export function RoleSimulator({ liveDemoHref }: { liveDemoHref: string }) {
   const summary = summarise(role, DEMO_PEOPLE);
   const roleLabel = DEMO_ROLE_LABELS[role];
   const roleIndex = DEMO_ROLES.indexOf(role);
+  const tbodyRef = useRef<HTMLTableSectionElement>(null);
+
+  const switchRole = (next: DemoRole) => {
+    setRole(next);
+    fx.blip(540);
+    fx.toast(`Directory as ${DEMO_ROLE_LABELS[next]}`);
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      tbodyRef.current?.animate([{ opacity: 0.25 }, { opacity: 1 }], {
+        duration: 260,
+        easing: "ease-out",
+      });
+    }
+  };
 
   return (
     <div className="rounded-[var(--radius-card)] border-2 border-ink/80 bg-surface-alt p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="label flex items-center gap-2 text-ink">
-          <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
+          <span aria-hidden="true" className="size-2 animate-pulse rounded-full bg-accent" />
           Directory RBAC simulator
         </p>
-        <span className="label rounded-full border border-success/30 bg-card px-2 py-0.5 text-success">
+        <span className="label inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-card px-2 py-0.5 text-success">
+          <span
+            aria-hidden="true"
+            className="size-1.5 animate-beacon rounded-full bg-success text-success"
+          />
           Enforced on the server
         </span>
       </div>
@@ -56,7 +74,7 @@ export function RoleSimulator({ liveDemoHref }: { liveDemoHref: string }) {
                   name={groupName}
                   value={option}
                   checked={checked}
-                  onChange={() => setRole(option)}
+                  onChange={() => switchRole(option)}
                   className="peer sr-only"
                 />
                 <span
@@ -92,7 +110,7 @@ export function RoleSimulator({ liveDemoHref }: { liveDemoHref: string }) {
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody ref={tbodyRef}>
             {people.map((person) => (
               <tr key={person.id} className="animate-row-in border-b border-ink/10 last:border-0">
                 <th scope="row" className="px-3 py-2.5 font-semibold whitespace-nowrap">

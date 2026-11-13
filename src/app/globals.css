@@ -16,6 +16,7 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent-strong: var(--on-accent-strong);
   --color-tangerine: var(--tangerine);
   --color-sage: var(--sage);
   --color-sage-strong: var(--sage-strong);
@@ -48,6 +49,13 @@
   --animate-row-in: row-in 0.4s var(--ease-out-expo) both;
   --animate-flip-in: flip-in 0.28s var(--ease-out-expo) both;
   --animate-pop: pop 0.3s var(--ease-spring) both;
+  --animate-unclip: unclip 1ms linear both;
+
+  @keyframes unclip {
+    to {
+      clip-path: inset(-1em);
+    }
+  }
 
   @keyframes panel-in {
     from {
@@ -239,16 +247,260 @@
   into place as it enters the viewport (src/motion/RevealObserver.tsx).
 */
 @media (prefers-reduced-motion: no-preference) {
-  .js [data-reveal] {
+  /* An animation, not a transition, so the element's own hover/tilt transitions stay intact. */
+  .js [data-reveal]:not([data-revealed]) {
     opacity: 0;
-    transform: translate3d(0, 28px, 0);
-    transition:
-      opacity 0.7s ease-out,
-      transform 0.9s var(--ease-out-expo);
-    transition-delay: calc(var(--reveal-index, 0) * 80ms);
   }
-  .js [data-reveal].is-revealed {
+  .js [data-reveal][data-revealed] {
+    animation: reveal 0.9s var(--ease-out-expo) both;
+    animation-delay: calc(var(--reveal-index, 0) * 80ms);
+  }
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Stitch desktop interactions (code.html <style>), adapted to the resolved tokens.
+   Every one of them is switched off by the reduced-motion rule in the base layer.
+   ------------------------------------------------------------------------------------------- */
+
+/* Custom cursor: a terracotta dot and a lagging ink ring (fine pointers only, see Effects.tsx). */
+.cursor-dot,
+.cursor-ring {
+  display: none;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 9999px;
+  transform: translate3d(-100px, -100px, 0);
+}
+.has-cursor .cursor-dot,
+.has-cursor .cursor-ring {
+  display: block;
+}
+.cursor-dot {
+  z-index: 9999;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent);
+  transition:
+    width 0.15s ease-out,
+    height 0.15s ease-out;
+}
+.cursor-ring {
+  z-index: 9998;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--ink);
+  transition:
+    width 0.22s ease-out,
+    height 0.22s ease-out,
+    background-color 0.22s ease-out,
+    border-color 0.22s ease-out;
+}
+.cursor-hover .cursor-ring {
+  width: 58px;
+  height: 58px;
+  background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: var(--accent);
+}
+.cursor-hover .cursor-dot {
+  width: 12px;
+  height: 12px;
+}
+
+/* Kinetic hero letters: each letter springs up, turns terracotta and casts a warm glow. */
+.char-kinetic {
+  display: inline-block;
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.2s ease,
+    text-shadow 0.28s ease;
+  will-change: transform;
+  touch-action: manipulation;
+}
+.char-kinetic:hover,
+.char-kinetic:active {
+  transform: translateY(-0.12em) scale(1.05);
+  color: var(--accent);
+  text-shadow: 0 14px 24px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+/* Shimmer stat cards: a light sweep and a springy lift on hover (press on touch). */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease;
+}
+.shimmer:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px -6px color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.shimmer:active {
+  transform: scale(0.97);
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(45deg, transparent 40%, rgb(255 255 255 / 0.6) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+.shimmer:hover::after,
+.shimmer:active::after {
+  transform: translateX(100%);
+}
+
+/* Tech tags: lift on hover, a playful tilted spring on press, and a tooltip card. */
+.tech-tag {
+  position: relative;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.tech-tag:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.tech-tag:active {
+  transform: scale(1.12) rotate(var(--rot, 2deg));
+}
+.tech-tooltip {
+  pointer-events: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 50;
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px) scale(0.96);
+  transform-origin: bottom center;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+.tech-tag:hover .tech-tooltip,
+.tech-tag:focus-visible .tech-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+/* Touch screens have no hover: keep the (invisible) tooltips out of layout entirely, so one at
+   the screen edge can never widen the page and push the fixed tab bar down. */
+@media (hover: none) {
+  .tech-tooltip {
+    display: none;
+  }
+}
+
+/* Tactile press: a quick squeeze ("badgeRipple"), on the scale property so it composes with
+   the hover lift and the magnetic translate. */
+.ripple {
+  animation: ripple 0.5s ease-out;
+}
+@keyframes ripple {
+  50% {
+    scale: 0.94;
+  }
+}
+
+/* Magnetic buttons spring back when the pointer leaves. */
+[data-magnetic] {
+  transition:
+    translate 0.15s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    background-color 0.2s ease-out,
+    color 0.2s ease-out;
+}
+
+/* 3D tilt cards follow the pointer (Effects.tsx); on touch they press in with a slight tilt. */
+[data-tilt] {
+  transform-style: preserve-3d;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.2s ease;
+  will-change: transform;
+}
+@media (pointer: coarse) {
+  [data-tilt]:active {
+    transform: perspective(600px) rotateX(2deg) translateY(2px) scale(0.985);
+  }
+}
+
+/* Write-path beam: a band of light that keeps sweeping across the pipeline. */
+.pipeline-beam {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 45%, transparent),
+    transparent
+  );
+  animation: beam 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+@keyframes beam {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
     opacity: 1;
-    transform: none;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Toast: springs up from the bottom (above the tab bar on phones). */
+.toast {
+  position: fixed;
+  z-index: 10000;
+  left: 50%;
+  bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  padding: 0.625rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 9999px;
+  background-color: var(--ink);
+  color: var(--on-ink);
+  box-shadow: 4px 4px 0 0 var(--accent);
+  opacity: 0;
+  transform: translateX(-50%) translateY(120px) scale(0.9);
+  transition:
+    transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.32s ease;
+  pointer-events: none;
+}
+.toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+@media (min-width: 768px) {
+  .toast {
+    left: auto;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    transform: translateY(100px);
+  }
+  .toast-show {
+    transform: translateY(0);
   }
 }
