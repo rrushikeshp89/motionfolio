@@ -2,14 +2,15 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { PipelineStep } from "@/content/portfolio";
+import { fx } from "@/motion/fx";
 import { useInView, useReducedMotion } from "@/motion/hooks";
 
 const STEP_MS = 1400;
 
 /**
- * Grove's write path as a row of nodes on an ink panel. A beam travels through the steps on its
- * own once the panel is in view; hovering, focusing or tapping a node takes over and pins the trace
- * there. The description below is a live region, so the selected step is announced. Under reduced
+ * Grove's write path as a row of nodes on an ink panel, with the Stitch "pulse beam" sweeping
+ * across it. The trace walks through the steps on its own once the panel is in view; hovering,
+ * focusing or tapping a node takes over, pins the trace there and blips (a rising pitch per step). The description below is a live region, so the selected step is announced. Under reduced
  * motion the beam never auto-advances and simply jumps to the chosen node.
  */
 export function WritePathTrace({
@@ -37,6 +38,12 @@ export function WritePathTrace({
   const select = (index: number) => {
     setPinned(true);
     setActive(index);
+    fx.blip(400 + index * 45);
+  };
+  const choose = (index: number) => {
+    select(index);
+    const step = steps[index];
+    if (step) fx.toast(`Trace step ${step.index}: ${step.label}`);
   };
   const current = steps[active] ?? steps[0];
   const progress = steps.length > 1 ? active / (steps.length - 1) : 1;
@@ -46,7 +53,8 @@ export function WritePathTrace({
       ref={ref}
       className="relative overflow-hidden rounded-[var(--radius-panel)] border-2 border-ink bg-ink p-5 text-on-ink shadow-ink-lg sm:p-7"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <span aria-hidden="true" className="pipeline-beam" />
+      <div className="relative flex flex-wrap items-center justify-between gap-3">
         <p className="label flex items-center gap-2">
           <span
             aria-hidden="true"
@@ -58,7 +66,7 @@ export function WritePathTrace({
           {pinned ? "Pinned: select any step" : "Select a step to trace it"}
         </p>
       </div>
-      <p className="mt-2 text-sm text-on-ink-muted">{caption}</p>
+      <p className="relative mt-2 text-sm text-on-ink-muted">{caption}</p>
 
       <ol className="relative mt-6 flex gap-2 overflow-x-auto pb-2 lg:grid lg:grid-cols-7 lg:overflow-visible lg:pb-0">
         {/* The beam: a rail behind the nodes that fills up to the active step (desktop). */}
@@ -79,10 +87,10 @@ export function WritePathTrace({
               <button
                 type="button"
                 aria-pressed={isActive}
-                onClick={() => select(index)}
+                onClick={() => choose(index)}
                 onMouseEnter={() => select(index)}
                 onFocus={() => select(index)}
-                className={`relative flex min-h-16 w-32 flex-col items-center justify-center rounded-xl border-2 px-2 py-2 text-center transition-colors duration-300 lg:w-full ${isActive ? "border-accent bg-accent text-ink" : isPast ? "border-accent/60 bg-ink-raised text-on-ink" : "border-on-ink/15 bg-ink-raised text-on-ink hover:border-on-ink/40"}`}
+                className={`relative flex min-h-16 w-32 flex-col items-center justify-center rounded-xl border-2 px-2 py-2 text-center transition-[color,background-color,border-color,transform] duration-300 hover:scale-105 lg:w-full ${isActive ? "scale-105 border-accent bg-accent text-ink" : isPast ? "border-accent/60 bg-ink-raised text-on-ink" : "border-on-ink/15 bg-ink-raised text-on-ink hover:border-on-ink/40"}`}
               >
                 <span
                   aria-hidden="true"
@@ -100,7 +108,7 @@ export function WritePathTrace({
         })}
       </ol>
 
-      <div className="mt-5 border-t border-on-ink/15 pt-4">
+      <div className="relative mt-5 border-t border-on-ink/15 pt-4">
         <p aria-live="polite" className="font-mono text-xs leading-relaxed text-on-ink sm:text-sm">
           <span className="text-accent">
             Trace {current?.index} {current?.label}:

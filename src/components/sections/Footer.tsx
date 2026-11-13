@@ -1,4 +1,5 @@
 import { facts } from "@/content/facts";
+import { Icon } from "@/components/ui/Icon";
 import { mainSiteUrl } from "@/lib/site";
 
 const { name, location } = facts.identity;
@@ -10,16 +11,28 @@ export function Footer() {
         <p className="label font-normal text-ink-muted">
           © {new Date().getFullYear()} {name} · {location}
         </p>
-        <p className="label font-normal text-ink-muted">
-          <span aria-hidden="true" className="mr-2 inline-block size-2 rounded-full bg-success" />
-          Built with Next.js, Motion and TypeScript ·{" "}
+        <div className="flex items-center justify-between gap-4">
+          <p className="label font-normal text-ink-muted">
+            <span
+              aria-hidden="true"
+              className="mr-2 inline-block size-2 animate-pulse rounded-full bg-success"
+            />
+            Built with Next.js and TypeScript ·{" "}
+            <a
+              href={mainSiteUrl.href}
+              className="text-ink underline underline-offset-4 hover:text-accent-strong"
+            >
+              Main portfolio
+            </a>
+          </p>
           <a
-            href={mainSiteUrl.href}
-            className="text-ink underline underline-offset-4 hover:text-accent-strong"
+            href="#top"
+            aria-label="Back to the top"
+            className="grid size-11 shrink-0 place-items-center rounded-full bg-ink text-on-ink transition-all duration-200 hover:scale-110 hover:bg-accent-strong"
           >
-            Main portfolio
+            <Icon name="arrow-up" size={18} />
           </a>
-        </p>
+        </div>
       </div>
     </footer>
   );

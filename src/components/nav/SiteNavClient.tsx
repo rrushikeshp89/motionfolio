@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { navItems, type NavId } from "@/content/nav";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import { SoundToggle } from "./SoundToggle";
 import { useActiveSection } from "./useActiveSection";
 
 const SECTION_IDS = navItems.map((item) => item.id);
@@ -38,7 +39,10 @@ export function SiteNavClient({ name, role, location, resumeUrl, external }: Sit
         />
         <div className="mx-auto flex h-14 max-w-[90rem] items-center justify-between gap-4 px-4 md:h-16 md:px-8">
           <a href="#top" className="label flex min-w-0 items-center gap-2 text-ink">
-            <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-accent" />
+            <span
+              aria-hidden="true"
+              className="size-2.5 shrink-0 animate-pulse rounded-full bg-accent"
+            />
             <span className="truncate text-xs tracking-[0.12em]">{name}</span>
             <span aria-hidden="true" className="hidden text-ink-light lg:inline">
               /
@@ -55,7 +59,7 @@ export function SiteNavClient({ name, role, location, resumeUrl, external }: Sit
                   <a
                     href={`#${item.id}`}
                     aria-current={active === item.id ? "location" : undefined}
-                    className={`label block py-2 transition-colors ${active === item.id ? "text-ink" : "text-ink-muted hover:text-ink"}`}
+                    className={`label block py-2 transition-colors ${active === item.id ? "text-ink" : "text-ink-muted hover:text-accent-strong"}`}
                   >
                     {item.label}
                   </a>
@@ -74,7 +78,7 @@ export function SiteNavClient({ name, role, location, resumeUrl, external }: Sit
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="label inline-flex items-center gap-1 py-2 text-ink-muted transition-colors hover:text-accent-strong"
+                    className="label inline-flex items-center gap-1 py-2 text-ink-muted underline-offset-4 transition-colors hover:text-accent-strong hover:underline"
                   >
                     {link.label}
                     <Icon name="arrow-up-right" size={12} />
@@ -85,15 +89,18 @@ export function SiteNavClient({ name, role, location, resumeUrl, external }: Sit
             </ul>
           </nav>
 
-          <a
-            href={resumeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="label inline-flex min-h-11 items-center gap-1 rounded-full border-2 border-ink bg-card px-3 md:hidden"
-          >
-            Résumé <Icon name="arrow-up-right" size={12} />
-            <span className="sr-only">(opens in a new tab)</span>
-          </a>
+          <div className="flex items-center gap-2 md:ml-[-0.5rem]">
+            <SoundToggle />
+            <a
+              href={resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="label inline-flex min-h-11 items-center gap-1 rounded-full border-2 border-ink bg-card px-3 md:hidden"
+            >
+              Résumé <Icon name="arrow-up-right" size={12} />
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
+          </div>
         </div>
       </header>
 

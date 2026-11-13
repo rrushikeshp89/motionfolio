@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
 import { facts } from "@/content/facts";
+import { skillUsage } from "@/content/portfolio";
 import { getMetric } from "@/content/queries";
+import { tagRotation } from "@/motion/tokens";
 import { formatYearMonth } from "@/lib/format";
 import { Chip } from "@/components/ui/Chip";
 import { Icon } from "@/components/ui/Icon";
@@ -47,7 +49,7 @@ export function Experience() {
                 key={job.organization}
                 data-reveal=""
                 style={{ "--reveal-index": position } as CSSProperties}
-                className="rounded-[var(--radius-panel)] border-2 border-ink bg-card p-6 transition-shadow duration-300 hover:shadow-ink"
+                className="rounded-[var(--radius-panel)] border-2 border-ink bg-card p-6 transition-[transform,box-shadow] duration-300 hover:[transform:translateY(-4px)] hover:shadow-ink-lg"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <h3 className="flex items-center gap-2 font-display text-2xl font-bold tracking-[-0.02em]">
@@ -84,7 +86,7 @@ export function Experience() {
             {education ? (
               <li
                 data-reveal=""
-                className="rounded-[var(--radius-panel)] border-2 border-ink bg-surface-alt p-6"
+                className="rounded-[var(--radius-panel)] border-2 border-ink bg-surface-alt p-6 transition-shadow duration-300 hover:shadow-ink"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="label flex items-center gap-2 text-accent-strong">
@@ -125,22 +127,30 @@ export function Experience() {
               >
                 <h3 className="label text-ink-muted">{skill.group}</h3>
                 <ul className="mt-3 flex flex-wrap gap-2">
-                  {skill.items.map((item) => (
-                    <li key={item}>
-                      <Chip className="transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:bg-sand hover:shadow-ink-sm">
-                        {item}
-                      </Chip>
-                    </li>
-                  ))}
+                  {skill.items.map((item, index) => {
+                    const usedIn = skillUsage(item);
+                    return (
+                      <li key={item} style={{ "--rot": tagRotation(index) } as CSSProperties}>
+                        <Chip className="tech-tag hover:border-ink hover:bg-ink hover:text-on-ink">
+                          {item}
+                          {usedIn.length > 0 ? (
+                            <span className="tech-tooltip label rounded-lg border-2 border-ink bg-ink px-2.5 py-1.5 font-normal text-on-ink shadow-ink-sm">
+                              <span className="sr-only">, </span>Used in {usedIn.join(" · ")}
+                            </span>
+                          ) : null}
+                        </Chip>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}
             <div data-reveal="">
               <h3 className="label text-ink-muted">Certifications</h3>
               <ul className="mt-3 flex flex-wrap gap-2">
-                {facts.certifications.map((item) => (
-                  <li key={item}>
-                    <Chip tone="accent" className="shadow-ink-sm">
+                {facts.certifications.map((item, index) => (
+                  <li key={item} style={{ "--rot": tagRotation(index) } as CSSProperties}>
+                    <Chip tone="accent" className="tech-tag shadow-ink-sm">
                       {item}
                     </Chip>
                   </li>

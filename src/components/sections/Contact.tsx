@@ -1,6 +1,7 @@
 import { facts } from "@/content/facts";
 import { resumeUrl } from "@/lib/site";
 import { LinkButton } from "@/components/ui/Button";
+import { PingDot } from "@/components/ui/PingDot";
 import { CopyEmail } from "./CopyEmail";
 import { PingFunnel } from "./PingFunnel";
 
@@ -16,10 +17,7 @@ export function Contact() {
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
         <PingFunnel>
           <p className="label flex items-center gap-2 text-ink-muted">
-            <span
-              aria-hidden="true"
-              className="size-2 animate-beacon rounded-full bg-accent text-accent"
-            />
+            <PingDot />
             <span className="hidden sm:inline">Click anywhere to dispatch a ping</span>
             <span className="sm:hidden">System dispatch</span>
           </p>
@@ -81,7 +79,7 @@ export function Contact() {
                 </textPath>
               </text>
             </svg>
-            <span className="press grid size-24 place-items-center rounded-full border-2 border-ink bg-accent text-ink transition-transform duration-300 group-hover:scale-105">
+            <span className="press grid size-24 place-items-center rounded-full border-2 border-ink bg-accent text-ink transition-transform duration-300 group-hover:scale-105 group-hover:rotate-6">
               <span className="text-center">
                 <span className="block font-display text-2xl font-black">RP</span>
                 <span className="label block text-[0.5625rem]">

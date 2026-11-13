@@ -4,6 +4,7 @@ import { tickerItems } from "@/content/portfolio";
 import { LinkButton } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Icon } from "@/components/ui/Icon";
+import { PingDot } from "@/components/ui/PingDot";
 import { Marquee } from "@/motion/Marquee";
 
 const { name, role, location, headline, subline, availability, email } = facts.identity;
@@ -13,19 +14,27 @@ const lastName = rest.join(" ");
 const tagline = headline.replace(new RegExp(`^${role}\\s+`, "i"), "").replace(/\.$/, "");
 
 /**
- * Each letter rises out of a clipped line on load, staggered. Pure CSS: it plays on first paint,
- * needs no JavaScript, and the reduced-motion rule in globals.css turns it off.
+ * Each letter rises out of a clipped line on load, staggered, then becomes "kinetic": hovering
+ * (or tapping) a letter springs it up in terracotta with a warm glow, and the whole line opens
+ * its tracking, as in the Stitch desktop export. Pure CSS: no JavaScript, and the reduced-motion
+ * rule in globals.css turns it off. The line is clipped only while the letters rise, so the
+ * hover lift and glow are not cut off afterwards.
  */
 function RisingWord({ word, offset }: { word: string; offset: number }) {
+  const unclipAt = (offset + word.length) * 45 + 950;
   return (
-    <span className="flex overflow-hidden pb-[0.04em]" aria-hidden="true">
+    <span
+      className="flex animate-unclip pb-[0.04em] transition-[letter-spacing] duration-700 [clip-path:inset(0_-0.5em)] hover:tracking-[-0.03em]"
+      style={{ animationDelay: `${unclipAt}ms` } as CSSProperties}
+      aria-hidden="true"
+    >
       {[...word].map((letter, index) => (
         <span
           key={`${letter}-${index}`}
           className="inline-block animate-rise"
           style={{ animationDelay: `${(offset + index) * 45}ms` } as CSSProperties}
         >
-          {letter}
+          <span className="char-kinetic">{letter}</span>
         </span>
       ))}
     </span>
@@ -42,11 +51,12 @@ export function Hero() {
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
         <div className="flex flex-col gap-3 border-b border-ink/15 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="label flex animate-fade items-center gap-2 text-ink">
+            <PingDot color="bg-success" />
+            {availability}
             <span
               aria-hidden="true"
-              className="size-2.5 animate-beacon rounded-full bg-success text-success"
+              className="ml-1 inline-block h-3.5 w-[7px] animate-blink bg-accent align-middle"
             />
-            {availability}
           </p>
           <div className="flex animate-fade items-center gap-3 [animation-delay:120ms]">
             <Chip tone="sand">2026 edition</Chip>
@@ -78,10 +88,15 @@ export function Hero() {
             <p className="mt-4 text-lg leading-relaxed text-ink-muted">{subline}</p>
           </div>
           <div className="flex animate-fade flex-wrap items-center gap-3 [animation-delay:750ms]">
-            <Chip tone="sage" className="hidden xl:inline-flex">
-              <span aria-hidden="true" className="size-2 rounded-full bg-success" />
-              Available for hire
-            </Chip>
+            <span data-tactile="" data-cursor="" className="hidden xl:inline-flex">
+              <Chip
+                tone="sage"
+                className="transition-all duration-200 hover:-translate-y-1 hover:border-ink hover:bg-ink hover:text-on-ink hover:shadow-md"
+              >
+                <span aria-hidden="true" className="size-2 animate-pulse rounded-full bg-success" />
+                Available for hire
+              </Chip>
+            </span>
             <LinkButton href="#work" variant="ink" icon="arrow-down">
               Explore work
             </LinkButton>

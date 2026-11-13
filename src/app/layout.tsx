@@ -4,6 +4,7 @@ import { SkipLink } from "@/components/ui/SkipLink";
 import { facts } from "@/content/facts";
 import { CONTENT_SECURITY_POLICY } from "@/lib/csp";
 import { siteUrl } from "@/lib/site";
+import { Effects } from "@/motion/Effects";
 import { REVEAL_SCRIPT } from "@/motion/reveal-script";
 import { display, mono } from "./fonts";
 import "./globals.css";
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SkipLink />
         <SiteNav />
         {children}
+        <Effects />
       </body>
     </html>
   );

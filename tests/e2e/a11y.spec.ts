@@ -8,7 +8,9 @@ test.describe("accessibility", () => {
     await page.goto("./");
     // Let reveals finish so axe measures final colours, not mid-fade ones.
     await page.evaluate(() =>
-      document.querySelectorAll("[data-reveal]").forEach((el) => el.classList.add("is-revealed")),
+      document
+        .querySelectorAll("[data-reveal]")
+        .forEach((el) => el.setAttribute("data-revealed", "")),
     );
     await page.waitForTimeout(1200);
     const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();

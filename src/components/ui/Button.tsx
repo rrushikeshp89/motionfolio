@@ -20,7 +20,8 @@ interface LinkButtonProps {
 
 /**
  * A link styled as the design's "keystroke" button: ink border, hard shadow, presses flat.
- * External links open in a new tab with rel="noopener noreferrer".
+ * Magnetic (leans toward the pointer) and tactile (squeeze + blip on press), per the Stitch
+ * desktop export. External links open in a new tab with rel="noopener noreferrer".
  */
 export function LinkButton({
   href,
@@ -34,6 +35,8 @@ export function LinkButton({
     <a
       href={href}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      data-magnetic=""
+      data-tactile=""
       className={`press label inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 px-5 py-2.5 ${VARIANTS[variant]} ${className}`}
     >
       {children}

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PingDot } from "./PingDot";
 
 interface SectionHeaderProps {
   id?: string;
@@ -16,7 +17,7 @@ export function SectionHeader({ id, eyebrow, title, aside, className = "" }: Sec
     >
       <div data-reveal="">
         <p className="label flex items-center gap-2 text-accent-strong">
-          <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
+          <PingDot />
           {eyebrow}
         </p>
         <h2

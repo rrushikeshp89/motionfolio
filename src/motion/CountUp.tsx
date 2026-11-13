@@ -9,6 +9,8 @@ interface CountUpProps {
   className?: string;
   /** What screen readers hear, when it differs from `display` (e.g. a suffix rendered outside). */
   srLabel?: string;
+  /** Decimal places while counting, e.g. 3 for "0.004". */
+  decimals?: number;
 }
 
 const DURATION_MS = 1100;
@@ -26,7 +28,7 @@ function splitAround(display: string, value: number): [string, string] {
  * reserved by an invisible copy so counting never shifts layout. Screen readers read the final value from an sr-only copy.
  * Plain requestAnimationFrame: a number tween does not need an animation library.
  */
-export function CountUp({ to, display, className = "", srLabel }: CountUpProps) {
+export function CountUp({ to, display, className = "", srLabel, decimals = 0 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export function CountUp({ to, display, className = "", srLabel }: CountUpProps) 
 
     const [prefix, suffix] = splitAround(display, to);
     const render = (value: number) => {
-      node.textContent = `${prefix}${value}${suffix}`;
+      node.textContent = `${prefix}${value.toFixed(decimals)}${suffix}`;
     };
     let frame = 0;
     const observer = new IntersectionObserver(
@@ -46,7 +48,8 @@ export function CountUp({ to, display, className = "", srLabel }: CountUpProps) 
         const start = performance.now();
         const tick = (now: number) => {
           const progress = Math.min(1, (now - start) / DURATION_MS);
-          render(Math.round(to * (1 - 2 ** (-10 * progress))));
+          const eased = to * (1 - 2 ** (-10 * progress));
+          render(decimals ? eased : Math.round(eased));
           if (progress < 1) frame = requestAnimationFrame(tick);
           else node.textContent = display;
         };
@@ -62,7 +65,7 @@ export function CountUp({ to, display, className = "", srLabel }: CountUpProps) 
       cancelAnimationFrame(frame);
       node.textContent = display;
     };
-  }, [to, display]);
+  }, [to, display, decimals]);
 
   return (
     <>
