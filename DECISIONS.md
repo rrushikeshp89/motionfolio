@@ -66,6 +66,16 @@ Architecture and content decisions for the Motion Portfolio, with the measuremen
   run a `reveal` keyframe on the `translate` property, so hover, tilt and magnet transforms
   compose with them. A regression test covers the first bug.
 
+- **ADR-012 Email links open Gmail compose on desktop.** A `mailto:` link hands off to the
+  computer's default mail program, and most desktops have none set up, so "Email direct" and the
+  contact-section address did nothing there; phones open their mail app and worked. On devices
+  with a precise pointer that can hover, a click on any `mailto:` link now opens a Gmail compose
+  window in a new tab, addressed from the link, with a toast. Phones keep `mailto:`, the `href`
+  stays `mailto:` so the links work without JavaScript, and modified or middle clicks are left to
+  the browser. Visitors who don't use Gmail still have the Copy button. The handler sits in the
+  existing delegated click listener (`src/motion/Effects.tsx`), so it covers every email link
+  without per-component code (+0.2 kB). Tests cover both desktop links and the phone `href`s.
+
 ## Design tokens
 
 - **ADR-009 One palette, resolved for contrast.** The two Stitch exports used different palettes
