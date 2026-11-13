@@ -169,3 +169,52 @@ test.describe("motion off", () => {
     await context.close();
   });
 });
+
+test.describe("email links", () => {
+  const GMAIL = "https://mail.google.com/mail/?view=cm&fs=1&to=rrushikeshp8%40gmail.com";
+
+  /** Records window.open calls instead of opening real tabs. */
+  async function captureOpens(page: Page) {
+    await page.addInitScript(() => {
+      const opened: unknown[][] = [];
+      Object.assign(window, { __opened: opened });
+      window.open = (...args: unknown[]) => {
+        opened.push(args);
+        return null;
+      };
+    });
+  }
+  const opened = (page: Page) =>
+    page.evaluate(() => (window as unknown as { __opened: unknown[][] }).__opened);
+
+  test("on desktop, Email direct opens Gmail compose addressed to Rushikesh", async ({ page }) => {
+    test.skip(isMobile(page), "phones keep mailto:");
+    await captureOpens(page);
+    await page.goto("./");
+    await page.getByRole("link", { name: "Email direct" }).click();
+    expect(await opened(page)).toEqual([[GMAIL, "_blank", "noopener,noreferrer"]]);
+    await expect(page.locator(".toast")).toHaveText(/Opening Gmail/);
+    await expect(page).toHaveURL(/\/motionfolio\/$/);
+  });
+
+  test("on desktop, the address in the contact section opens Gmail compose too", async ({
+    page,
+  }) => {
+    test.skip(isMobile(page), "phones keep mailto:");
+    await captureOpens(page);
+    await page.goto("./#contact");
+    await page.getByRole("link", { name: "rrushikeshp8@gmail.com" }).click();
+    expect(await opened(page)).toEqual([[GMAIL, "_blank", "noopener,noreferrer"]]);
+  });
+
+  test("on phones, email links stay mailto: for the mail app", async ({ page }) => {
+    test.skip(!isMobile(page), "phones only");
+    await page.goto("./");
+    for (const name of ["Email direct", "rrushikeshp8@gmail.com"]) {
+      await expect(page.getByRole("link", { name })).toHaveAttribute(
+        "href",
+        "mailto:rrushikeshp8@gmail.com",
+      );
+    }
+  });
+});
