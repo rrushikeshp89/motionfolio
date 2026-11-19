@@ -7,7 +7,21 @@ test.describe("content comes from facts.ts", () => {
 
   test("names the owner and role", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName("Rushikesh Panchal");
-    await expect(page).toHaveTitle(/Rushikesh Panchal, Software Developer/);
+    await expect(page).toHaveTitle("Motionfolio");
+    // Link previews keep the full name and role.
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      "content",
+      /Rushikesh Panchal, Software Developer/,
+    );
+  });
+
+  test("serves a favicon and a home-screen icon", async ({ page, request }) => {
+    for (const rel of ["icon", "apple-touch-icon"]) {
+      const href = (await page.locator(`link[rel="${rel}"]`).getAttribute("href")) ?? "";
+      expect(href, `${rel} link`).not.toBe("");
+      const response = await request.get(new URL(href, page.url()).href);
+      expect(response.status(), `${rel} at ${href}`).toBe(200);
+    }
   });
 
   test("shows real experience and education, not the mock-up's", async ({ page }) => {
