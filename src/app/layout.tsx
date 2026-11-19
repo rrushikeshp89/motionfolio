@@ -10,11 +10,14 @@ import { display, mono } from "./fonts";
 import "./globals.css";
 
 const { name, role, headline } = facts.identity;
+/** The browser-tab name. Link previews keep the longer title so they still say whose site it is. */
+const tabTitle = "Motionfolio";
 const siteTitle = `${name}, ${role} — Motion Portfolio`;
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
-  title: { default: siteTitle, template: `%s | ${name}` },
+  title: { default: tabTitle, template: `%s | ${tabTitle}` },
+  applicationName: tabTitle,
   description: headline,
   authors: [{ name, url: facts.identity.github }],
   alternates: { canonical: siteUrl.href },
