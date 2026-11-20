@@ -24,7 +24,7 @@ export function CopyEmail({ email, className = "" }: { email: string; className?
     <button
       type="button"
       onClick={copy}
-      data-ping-ignore=""
+      data-ping="email"
       className={`press label inline-flex min-h-11 items-center gap-2 rounded-full border-2 px-4 transition-colors ${copied ? "border-accent-strong bg-accent-strong text-on-accent-strong" : "border-ink bg-card text-ink hover:bg-ink hover:text-on-ink"} ${className}`}
     >
       <span key={copied ? "done" : "idle"} className="inline-flex animate-pop items-center gap-2">

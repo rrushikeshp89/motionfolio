@@ -18,8 +18,10 @@ export function Contact() {
         <PingFunnel>
           <p className="label flex items-center gap-2 text-ink-muted">
             <PingDot />
-            <span className="hidden sm:inline">Click anywhere to dispatch a ping</span>
-            <span className="sm:hidden">System dispatch</span>
+            <span className="hidden sm:inline">
+              Email, GitHub or LinkedIn: every click is a ping
+            </span>
+            <span className="sm:hidden">Every click is a ping</span>
           </p>
           <h2
             id="contact-title"

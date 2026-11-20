@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { isDesktopWide, isMobile } from "./helpers";
 
 test.describe("project inspector", () => {
@@ -60,15 +60,6 @@ test.describe("contact", () => {
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
       "rrushikeshp8@gmail.com",
     );
-  });
-
-  test("the funnel catches pings", async ({ page }) => {
-    test.skip(isMobile(page), "the funnel card is hidden on phones");
-    await page.goto("./#contact");
-    const funnel = page.getByRole("button", { name: /000000 Pings caught/ });
-    await expect(funnel).toBeVisible();
-    await page.getByRole("heading", { name: "Everything ends up here." }).click();
-    await expect(page.getByRole("button", { name: /000001 Pings caught/ })).toBeVisible();
   });
 });
 

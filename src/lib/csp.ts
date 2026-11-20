@@ -15,7 +15,8 @@ export const CONTENT_SECURITY_POLICY = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self'",
+  // The shared ping counter (src/motion/pings.ts): fetch and the live event stream.
+  "connect-src 'self' https://abacus.jasoncameron.dev",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

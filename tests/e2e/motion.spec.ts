@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test.describe("motion is optional", () => {
   test("reduced motion shows everything at rest", async ({ browser }) => {

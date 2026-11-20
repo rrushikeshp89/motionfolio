@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { fx } from "./fx";
+import { pingFromEvent, type PingProfiles } from "./pings";
 
 /** Desktops and laptops: a precise pointer that can hover. Phones and tablets keep mailto:. */
 const DESKTOP = "(hover: hover) and (pointer: fine)";
@@ -38,13 +39,26 @@ const TILT_DEGREES = 5;
  * - 3D tilt cards ([data-tilt]) that follow the pointer;
  * - a tactile press ripple and blip on [data-tactile];
  * - the toast that fx.toast() fills;
- * - email links that work on desktop: see openEmailOnDesktop().
+ * - email links that work on desktop: see openEmailOnDesktop();
+ * - the shared ping counter: clicks on email, GitHub and LinkedIn (see pings.ts).
  * Pointer effects only run with a fine pointer and motion allowed; the toast always works.
  */
-export function Effects() {
+export function Effects({ github, linkedin }: PingProfiles) {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<{ message: string; id: number } | null>(null);
+
+  // Every click on the email, GitHub or LinkedIn links (anywhere, any device) counts as a ping.
+  // Capture phase, so it counts even when another handler takes over the click (desktop email).
+  useEffect(() => {
+    const onPing = (event: MouseEvent) => pingFromEvent(event, { github, linkedin });
+    document.addEventListener("click", onPing, true);
+    document.addEventListener("auxclick", onPing, true);
+    return () => {
+      document.removeEventListener("click", onPing, true);
+      document.removeEventListener("auxclick", onPing, true);
+    };
+  }, [github, linkedin]);
 
   useEffect(() => {
     let timer = 0;
