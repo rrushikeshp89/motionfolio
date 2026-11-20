@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { isMobile } from "./helpers";
 
 /** Coverage for the Stitch desktop/mobile interactions (cursor, kinetic type, magnet, tilt, …). */

@@ -57,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SkipLink />
         <SiteNav />
         {children}
-        <Effects />
+        <Effects github={facts.identity.github} linkedin={facts.identity.linkedin} />
       </body>
     </html>
   );

@@ -75,6 +75,22 @@ Architecture and content decisions for the Motion Portfolio, with the measuremen
   the browser. Visitors who don't use Gmail still have the Copy button. The handler sits in the
   existing delegated click listener (`src/motion/Effects.tsx`), so it covers every email link
   without per-component code (+0.2 kB). Tests cover both desktop links and the phone `href`s.
+- **ADR-013 "Pings caught" is a shared, live count of real contact clicks.** The funnel used to
+  count the visitor's own taps on empty space, so every visit started at 000000. It now counts
+  clicks on the email links (and the Copy button), the GitHub profile and the LinkedIn profile,
+  from any section and any device, across all visitors. GitHub Pages cannot store anything, so
+  the number lives in [Abacus](https://abacus.jasoncameron.dev), a free counting API with CORS and
+  Server-Sent Events: the page reads the count when the contact section scrolls into view, then
+  listens on the event stream, so a ping from anyone updates every open copy within a moment.
+  Clicks are sent with `keepalive` so they finish as the visitor leaves for GitHub, and no data
+  about the visitor goes with them. Each visitor counts once per channel per day (remembered in
+  localStorage), so one person cannot run the number up by clicking; anyone could still call the
+  public API directly, so the number is indicative, not audited. Project repository links do
+  not count. The last value is cached so the card shows a number at once; if the service is
+  down the card shows `------` with a grey dot, and the page is otherwise unaffected. Lighthouse
+  never scrolls, so audits make no counter request. `connect-src` gains the API host. The old
+  "click anywhere" practice pings were removed because they were not real pings. E2e tests run
+  against a fake counter (`tests/e2e/fixtures.ts`) and never touch the live count (+1.7 kB).
 
 ## Design tokens
 
@@ -106,7 +122,7 @@ Architecture and content decisions for the Motion Portfolio, with the measuremen
 | Project years and "Release 2026.04"                                            | Not in facts; removed                                                |
 | LeadHub "100% containerized", "1 domain layer" stats                           | LeadHub has no measured metrics; the panel shows its bullets instead |
 | Skill descriptions ("Core daily language · Strict types")                      | Plain skill names from facts                                         |
-| "000042 swallowed" ping counter                                                | A counter of the visitor's own pings this visit, starting at 0       |
+| "000042 swallowed" ping counter                                                | A live count of real email, GitHub and LinkedIn clicks (ADR-013)     |
 | Stitch stock images (`aida-public`, Unsplash)                                  | Removed; temporary links and not the owner's work                    |
 
 Kept as decoration, not claims: "2026 edition", principle tags (Explainability, Server-side
