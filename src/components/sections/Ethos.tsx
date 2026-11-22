@@ -58,7 +58,11 @@ export function Ethos() {
         </ol>
 
         <div data-reveal="" className="mt-12">
-          <WritePathTrace steps={pipeline.steps} caption={pipeline.caption} />
+          <WritePathTrace
+            steps={pipeline.steps}
+            caption={pipeline.caption}
+            committed={pipeline.committed}
+          />
         </div>
       </div>
     </section>

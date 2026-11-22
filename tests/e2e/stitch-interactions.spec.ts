@@ -104,15 +104,6 @@ test.describe("feedback", () => {
     await expect(live(/^0\.004$/)).toBeVisible();
   });
 
-  test("the write path has a sweeping beam and grows the active step", async ({ page }) => {
-    await page.goto("./#ethos");
-    await expect(page.locator(".pipeline-beam")).toBeAttached();
-    const step = page.getByRole("button", { name: /Transaction/ });
-    await step.click();
-    await expect(step).toHaveClass(/scale-105/);
-    await expect(page.locator(".toast")).toHaveText(/Trace step 05: Transaction/);
-  });
-
   test("tapping the hire badge plays the tactile squeeze", async ({ page }) => {
     test.skip(isMobile(page) || (page.viewportSize()?.width ?? 0) < 1280, "badge shows on xl");
     await page.goto("./");

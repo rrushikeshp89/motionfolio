@@ -91,6 +91,21 @@ Architecture and content decisions for the Motion Portfolio, with the measuremen
   never scrolls, so audits make no counter request. `connect-src` gains the API host. The old
   "click anywhere" practice pings were removed because they were not real pings. E2e tests run
   against a fake counter (`tests/e2e/fixtures.ts`) and never touch the live count (+1.7 kB).
+- **ADR-014 The write path matches the profile README card.** The dark ink panel with a sweeping
+  beam is replaced by the light write-path card from the owner's GitHub profile README
+  (`rrushikeshp89/rrushikeshp89`, `scripts/build_cards.py`): cream paper, ink borders, a row of
+  seven steps from `lg` and a column with a left rail on phones. The timing is ported exactly:
+  an 11.2 s loop in which each step owns 1.4 s; the request token slides along a sand rail, the
+  step lights tangerine and pops (1.07 wide, 1.04 on phones), earlier steps settle to a blush, a
+  trace line fades in, and after step 07 a green "Committed" line shows before the reset. The
+  copy (short box names, one trace line per step, the subtitle) is the card's; the step order
+  still comes from `facts.ts`. Unlike the card, which is an image, the site's version stays
+  interactive: clicking, tapping or focusing a step holds the trace there with a blip and a
+  toast, and it carries on after 4 s. It loops only while on screen. Under reduced motion it
+  holds still on step 03, as the card does without animation. The timeline is a pure function
+  (`src/motion/write-path-timeline.ts`, unit tested) and the component re-renders only when the
+  frame changes; layout classes live in CSS to keep the JS budget (149.6 kB). One new token,
+  `--rail` (#D9CDBB), is decoration only.
 
 ## Design tokens
 

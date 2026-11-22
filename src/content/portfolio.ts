@@ -198,32 +198,54 @@ export const principles: readonly Principle[] = facts.approach.principles.map(
 
 export interface PipelineStep {
   index: string;
+  /** The step's name in facts.ts ("Zod validation"). */
   label: string;
+  /** The short name on the step's box ("Zod"), as on the profile README card. */
+  short: string;
   detail: string;
 }
 
 /*
-  What each write-path step does, condensed from Grove's case study (facts.projects[0].caseStudy).
-  Keyed by the step names in facts.approach.writePath, so renaming a step fails the build.
+  The write path as the profile README card (rrushikeshp89/rrushikeshp89) tells it: a short box
+  name and one trace line per step, condensed from Grove's case study. Keyed by the step names in
+  facts.approach.writePath, so renaming a step fails the build.
 */
-const STEP_DETAILS: Record<string, string> = {
-  Interface: "A React form submits the change to a Next.js server action.",
-  "Server action": "createAction runs the same steps for every change, every time.",
-  "Permission check":
-    "Role, scope and record are checked on the server; hiding a button is never the only safeguard.",
-  "Zod validation": "The payload is validated with Zod before anything touches the database.",
-  Transaction: "The change, its audit entries and its notifications commit together or not at all.",
-  "Audit log": "Every change leaves an audit entry, written inside the same transaction.",
-  PostgreSQL:
-    "Supabase Postgres through Prisma, with row level security and no policies: only the server connects.",
+const STEP_COPY: Record<string, { short: string; detail: string }> = {
+  Interface: {
+    short: "Interface",
+    detail: "The browser submits a form. Nothing it sends is trusted.",
+  },
+  "Server action": {
+    short: "Server action",
+    detail: "A Next.js server action receives it and authenticates the session.",
+  },
+  "Permission check": {
+    short: "Permission",
+    detail:
+      "Role, scope and record are checked on the server; hiding a button is never the only safeguard.",
+  },
+  "Zod validation": {
+    short: "Zod",
+    detail: "The input is validated with Zod before anything is written.",
+  },
+  Transaction: {
+    short: "Transaction",
+    detail: "The change, its audit entries and notifications commit or roll back together.",
+  },
+  "Audit log": { short: "Audit log", detail: "Every change records who did what, and when." },
+  PostgreSQL: {
+    short: "Postgres",
+    detail: "Postgres via Prisma, with row level security on and no public access.",
+  },
 };
 
 export const pipeline = {
-  caption: facts.approach.writePath.caption,
+  caption: `${facts.approach.writePath.caption.replace(/\.$/, "")}, and it is traced on the server.`,
+  committed: "One audited, transactional write: it all landed together, or none of it did.",
   steps: facts.approach.writePath.steps.map((label, position): PipelineStep => {
-    const detail = STEP_DETAILS[label];
-    if (!detail) throw new Error(`No description for write-path step "${label}"`);
-    return { index: String(position + 1).padStart(2, "0"), label, detail };
+    const copy = STEP_COPY[label];
+    if (!copy) throw new Error(`No description for write-path step "${label}"`);
+    return { index: String(position + 1).padStart(2, "0"), label, ...copy };
   }),
 };
 

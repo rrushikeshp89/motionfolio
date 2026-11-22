@@ -1,121 +1,218 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PipelineStep } from "@/content/portfolio";
 import { fx } from "@/motion/fx";
 import { useInView, useReducedMotion } from "@/motion/hooks";
+import {
+  LOOP_MS,
+  START_MS,
+  STILL_STEP,
+  frameAt,
+  nextChangeAfter,
+  pinnedFrame,
+  resumeTimeFor,
+  type TraceFrame,
+} from "@/motion/write-path-timeline";
 
-const STEP_MS = 1400;
+/** How long a step stays held after a click or tap before the trace carries on. */
+const HOLD_MS = 4000;
 
 /**
- * Grove's write path as a row of nodes on an ink panel, with the Stitch "pulse beam" sweeping
- * across it. The trace walks through the steps on its own once the panel is in view; hovering,
- * focusing or tapping a node takes over, pins the trace there and blips (a rising pitch per step). The description below is a live region, so the selected step is announced. Under reduced
- * motion the beam never auto-advances and simply jumps to the chosen node.
+ * Grove's write path, as on the profile README card: a light paper panel where a request token
+ * travels the seven steps (a row on wide screens, a column on phones), each step lights up as it
+ * arrives and stays blushed, a trace line says what the step does, and the write commits at the
+ * end. It loops while on screen. Clicking, tapping or focusing a step holds the trace there (with
+ * a blip and a toast on click) and it carries on after a few seconds. Under reduced motion it
+ * holds still on step 03 and only moves when a step is chosen.
  */
 export function WritePathTrace({
   steps,
   caption,
+  committed,
 }: {
   steps: readonly PipelineStep[];
   caption: string;
+  committed: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, 0.5);
+  const inView = useInView(ref, 0.3);
   const reduced = useReducedMotion();
-  const [active, setActive] = useState(0);
-  const [pinned, setPinned] = useState(false);
+  const [frame, setFrame] = useState<TraceFrame>(() => pinnedFrame(STILL_STEP));
+  // `turn` changes on every hold, so holding the same step again restarts its timer.
+  const [held, setHeld] = useState<{ index: number; turn: number } | null>(null);
+  const elapsed = useRef(START_MS);
 
+  // Play the loop while the panel is on screen and no step is held.
   useEffect(() => {
-    if (!inView || pinned || reduced) return;
-    const timer = window.setInterval(
-      () => setActive((current) => (current + 1) % steps.length),
-      STEP_MS,
-    );
-    return () => window.clearInterval(timer);
-  }, [inView, pinned, reduced, steps.length]);
+    if (!inView || reduced || held) return;
+    const origin = performance.now() - elapsed.current;
+    let timer = 0;
+    const tick = () => {
+      const t = (performance.now() - origin) % LOOP_MS;
+      elapsed.current = t;
+      setFrame(frameAt(t));
+      timer = window.setTimeout(tick, Math.max(16, nextChangeAfter(t) - t + 4));
+    };
+    tick();
+    return () => {
+      window.clearTimeout(timer);
+      elapsed.current = (performance.now() - origin) % LOOP_MS;
+    };
+  }, [inView, reduced, held]);
 
-  const select = (index: number) => {
-    setPinned(true);
-    setActive(index);
-    fx.blip(400 + index * 45);
+  // A held step lets go after a few seconds (not under reduced motion, where nothing plays).
+  useEffect(() => {
+    if (!held || reduced) return;
+    const timer = window.setTimeout(() => setHeld(null), HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [held, reduced]);
+
+  const hold = (index: number) => {
+    elapsed.current = resumeTimeFor(index);
+    setFrame(pinnedFrame(index));
+    setHeld((current) => ({ index, turn: (current?.turn ?? 0) + 1 }));
   };
   const choose = (index: number) => {
-    select(index);
+    hold(index);
+    fx.blip(400 + index * 45);
     const step = steps[index];
-    if (step) fx.toast(`Trace step ${step.index}: ${step.label}`);
+    if (step) fx.toast(`Trace step ${step.index}: ${step.short}`);
   };
-  const current = steps[active] ?? steps[0];
-  const progress = steps.length > 1 ? active / (steps.length - 1) : 1;
+
+  const last = Math.max(1, steps.length - 1);
+  const progress = frame.at / last;
+  const heldStep = held ? steps[held.index] : undefined;
 
   return (
     <div
       ref={ref}
-      className="relative overflow-hidden rounded-[var(--radius-panel)] border-2 border-ink bg-ink p-5 text-on-ink shadow-ink-lg sm:p-7"
+      data-write-path=""
+      data-reset={frame.visible ? undefined : ""}
+      className="wp-card"
     >
-      <span aria-hidden="true" className="pipeline-beam" />
-      <div className="relative flex flex-wrap items-center justify-between gap-3">
-        <p className="label flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="size-2 animate-beacon rounded-full bg-accent text-accent"
-          />
-          Grove HRMS write path
-        </p>
-        <p className="label rounded-full border border-on-ink/20 px-2.5 py-1 font-normal text-on-ink-muted">
-          {pinned ? "Pinned: select any step" : "Select a step to trace it"}
-        </p>
-      </div>
-      <p className="relative mt-2 text-sm text-on-ink-muted">{caption}</p>
+      <p className="wp-title">
+        <span aria-hidden="true" />
+        Grove HRMS write path
+      </p>
+      <p className="mt-3 text-base text-ink-muted">{caption}</p>
 
-      <ol className="relative mt-6 flex gap-2 overflow-x-auto pb-2 lg:grid lg:grid-cols-7 lg:overflow-visible lg:pb-0">
-        {/* The beam: a rail behind the nodes that fills up to the active step (desktop). */}
-        <span
-          aria-hidden="true"
-          className="absolute top-1/2 right-[7%] left-[7%] hidden h-0.5 -translate-y-1/2 bg-on-ink/15 lg:block"
-        >
-          <span
-            className="absolute inset-y-0 left-0 w-full origin-left bg-accent transition-transform duration-500 ease-[var(--ease-out-expo)]"
-            style={{ transform: `scaleX(${progress})` } as CSSProperties}
-          />
-        </span>
-        {steps.map((step, index) => {
-          const isActive = index === active;
-          const isPast = index < active;
-          return (
-            <li key={step.label} className="relative shrink-0 lg:shrink">
-              <button
-                type="button"
-                aria-pressed={isActive}
-                onClick={() => choose(index)}
-                onMouseEnter={() => select(index)}
-                onFocus={() => select(index)}
-                className={`relative flex min-h-16 w-32 flex-col items-center justify-center rounded-xl border-2 px-2 py-2 text-center transition-[color,background-color,border-color,transform] duration-300 hover:scale-105 lg:w-full ${isActive ? "scale-105 border-accent bg-accent text-ink" : isPast ? "border-accent/60 bg-ink-raised text-on-ink" : "border-on-ink/15 bg-ink-raised text-on-ink hover:border-on-ink/40"}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`absolute -inset-1 rounded-[0.9rem] border-2 border-accent/50 transition-[opacity,transform] duration-300 ${isActive ? "scale-100 opacity-100" : "scale-90 opacity-0"}`}
-                />
-                <span
-                  className={`label text-[0.625rem] ${isActive ? "text-ink" : "text-tangerine"}`}
+      <div className="relative mt-5">
+        {/* Phones: the rail runs down the left, with a branch to every step. */}
+        <Rail
+          axis="y"
+          count={steps.length}
+          progress={progress}
+          visible={frame.visible}
+          className="wp-rail-y"
+        />
+        <ol className="wp-list">
+          {steps.map((step, index) => {
+            const state = frame.steps[index] ?? "base";
+            return (
+              <li key={step.label}>
+                <button
+                  type="button"
+                  data-state={state}
+                  aria-pressed={held?.index === index}
+                  onClick={() => choose(index)}
+                  onFocus={() => hold(index)}
+                  className="wp-step"
                 >
-                  {step.index}
-                </span>
-                <span className="label mt-0.5 text-[0.6875rem] leading-tight">{step.label}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
+                  <span>{step.index}</span>
+                  <span>{step.short}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+        {/* Wide screens: the rail runs under the row, from the first step's centre to the last's. */}
+        <Rail
+          axis="x"
+          count={steps.length}
+          progress={progress}
+          visible={frame.visible}
+          className="wp-rail-x"
+        />
+      </div>
 
-      <div className="relative mt-5 border-t border-on-ink/15 pt-4">
-        <p aria-live="polite" className="font-mono text-xs leading-relaxed text-on-ink sm:text-sm">
-          <span className="text-accent">
-            Trace {current?.index} {current?.label}:
-          </span>{" "}
-          {current?.detail}
+      <div className="wp-captions">
+        <div aria-hidden="true" className="grid">
+          {steps.map((step, index) => (
+            <p
+              key={step.label}
+              data-on={frame.caption === index ? "" : undefined}
+              className="wp-line"
+            >
+              <span className="wp-label">
+                Trace {step.index}
+                <span className="wp-phone-only"> · {step.short}</span>
+              </span>
+              <span className="wp-text">{step.detail}</span>
+            </p>
+          ))}
+          <p data-on={frame.caption === "commit" ? "" : undefined} className="wp-line">
+            <span className="wp-label wp-ok">
+              <CheckDot />
+              Committed
+            </span>
+            <span className="wp-text">{committed}</span>
+          </p>
+        </div>
+        <p aria-live="polite" className="sr-only">
+          {heldStep ? `Trace ${heldStep.index}, ${heldStep.short}: ${heldStep.detail}` : ""}
         </p>
       </div>
     </div>
+  );
+}
+
+/** The rail: a sand track with a dot under every step, the tangerine fill, and the token. */
+function Rail({
+  axis,
+  count,
+  progress,
+  visible,
+  className,
+}: {
+  axis: "x" | "y";
+  count: number;
+  progress: number;
+  visible: boolean;
+  className: string;
+}) {
+  const along = (fraction: number) =>
+    axis === "x" ? { left: `${fraction * 100}%` } : { top: `${fraction * 100}%` };
+  return (
+    <div aria-hidden="true" className={className}>
+      <span className="wp-track" />
+      <span
+        data-visible={visible}
+        className="wp-fill"
+        style={{ scale: axis === "x" ? `${progress} 1` : `1 ${progress}` }}
+      />
+      {Array.from({ length: count }, (_, i) => (
+        <span key={i} className="wp-dot" style={along(i / Math.max(1, count - 1))} />
+      ))}
+      <span data-visible={visible} className="wp-token" style={along(progress)}>
+        <span />
+      </span>
+    </div>
+  );
+}
+
+function CheckDot() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <circle cx="8" cy="8" r="8" fill="currentColor" />
+      <path
+        d="M4.5 8l2.5 2.5 4.5-5"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

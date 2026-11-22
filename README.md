@@ -53,7 +53,7 @@ export drives phones. Every section moves, and none of it needs JavaScript to be
     <td align="center"><sub>Phone: hero, project tabs and a toast</sub></td>
   </tr>
   <tr>
-    <td colspan="2"><img src="docs/images/desktop-ethos.png" alt="Desktop How I work section: the middle principle card tilted in 3D toward the cursor, above the dark write-path panel tracing step 03 Permission check" /></td>
+    <td colspan="2"><img src="docs/images/desktop-ethos.png" alt="Desktop How I work section: the middle principle card tilted in 3D toward the cursor, above the light Grove HRMS write-path panel with step 04 Zod lit and its trace line" /></td>
   </tr>
   <tr>
     <td colspan="2" align="center"><sub>3D tilt cards that follow the cursor, and the write path tracing itself step by step</sub></td>
@@ -131,9 +131,12 @@ flowchart LR
   the inspector's cross-fade and the RBAC table's dip, all with no animation library.
 - **Every Stitch interaction is in.** A custom cursor (dot plus lagging ring) that grows over
   anything clickable, kinetic hero letters, magnetic buttons, 3D tilt cards, shimmering stat
-  cards, tech-tag tooltips, a sweeping pipeline beam, tactile press ripples with optional sound
+  cards, tech-tag tooltips, tactile press ripples with optional sound
   blips (header toggle), and toasts. They are wired once, by event delegation, in
   `src/motion/Effects.tsx`.
+- **The write path matches the profile README card.** The same light panel and 11.2 s trace
+  (`src/motion/write-path-timeline.ts`): the token rides the rail, each step pops and settles,
+  and the write commits. Click or tap a step to hold it there.
 - **Content never waits on animation.** Everything is in the server HTML. Reveals only apply
   when an inline script has run, and nothing moves or starts hidden under
   `prefers-reduced-motion`. Tests check both cases, plus a no-JavaScript run.
