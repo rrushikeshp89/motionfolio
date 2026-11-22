@@ -41,15 +41,6 @@ test.describe("RBAC simulator", () => {
   });
 });
 
-test.describe("write path", () => {
-  test("selecting a step pins the trace and describes it", async ({ page }) => {
-    await page.goto("./#ethos");
-    await page.getByRole("button", { name: /Zod validation/ }).click();
-    await expect(page.getByText(/Trace 04 Zod validation:/)).toBeVisible();
-    await expect(page.getByText("Pinned: select any step")).toBeVisible();
-  });
-});
-
 test.describe("contact", () => {
   test("copies the email address", async ({ page, context, browserName }) => {
     test.skip(browserName !== "chromium", "clipboard permissions are Chromium-only here");

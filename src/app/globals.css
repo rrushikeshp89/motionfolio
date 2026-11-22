@@ -7,6 +7,7 @@
   --color-card: var(--card);
   --color-canvas-warm: var(--canvas-warm);
   --color-sand: var(--sand);
+  --color-rail: var(--rail);
   --color-ink: var(--ink);
   --color-ink-raised: var(--ink-raised);
   --color-ink-muted: var(--ink-muted);
@@ -438,33 +439,6 @@
   }
 }
 
-/* Write-path beam: a band of light that keeps sweeping across the pipeline. */
-.pipeline-beam {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--accent) 45%, transparent),
-    transparent
-  );
-  animation: beam 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  pointer-events: none;
-}
-@keyframes beam {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-
 /* Toast: springs up from the bottom (above the tab bar on phones). */
 .toast {
   position: fixed;
@@ -503,4 +477,202 @@
   .toast-show {
     transform: translateY(0);
   }
+}
+
+/*
+  Write path (WritePathTrace), timed like the profile README card: a lit step pops (1.07 on wide
+  screens, 1.04 on phones), the request token slides along the rail, trace lines fade up 5px.
+*/
+.wp-step {
+  --wp-pop: 1.04;
+  --wp-dip: 0.99;
+  transition:
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+@media (min-width: 64rem) {
+  .wp-step {
+    --wp-pop: 1.07;
+    --wp-dip: 0.985;
+  }
+}
+/* The reset back to the start fades a little slower, as on the card. */
+.wp-card[data-reset] .wp-step {
+  transition-duration: 0.3s;
+}
+.wp-line {
+  opacity: 0;
+  translate: 0 5px;
+  transition:
+    opacity 0.1s ease-out,
+    translate 0s 0.12s;
+}
+.wp-line[data-on] {
+  opacity: 1;
+  translate: none;
+}
+.wp-token[data-visible="false"],
+.wp-fill[data-visible="false"] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wp-step[data-state="current"] {
+    animation: wp-pop 0.49s cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  .wp-line[data-on] {
+    transition:
+      opacity 0.15s ease-out,
+      translate 0.15s ease-out;
+  }
+  .wp-token {
+    transition:
+      left 0.448s cubic-bezier(0.45, 0, 0.55, 1),
+      top 0.448s cubic-bezier(0.45, 0, 0.55, 1),
+      opacity 0.3s ease;
+  }
+  .wp-fill {
+    transition:
+      scale 0.448s cubic-bezier(0.45, 0, 0.55, 1),
+      opacity 0.3s ease;
+  }
+  /* Faded out for the reset: jump home instead of sliding back. */
+  .wp-token[data-visible="false"],
+  .wp-fill[data-visible="false"] {
+    transition: opacity 0.3s ease;
+  }
+}
+@keyframes wp-pop {
+  0% {
+    scale: 1;
+  }
+  32% {
+    scale: var(--wp-pop);
+  }
+  68% {
+    scale: var(--wp-dip);
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+/* Write path layout: a column with a left rail on phones, a row with the rail beneath from lg. */
+.wp-card {
+  @apply rounded-[22px] border-[2.5px] border-ink bg-surface px-6 pt-7 pb-6 shadow-[7px_7px_0_0_var(--ink)] sm:px-8 sm:pt-8;
+}
+.wp-title {
+  @apply flex items-center gap-2.5 font-mono text-[0.8125rem] leading-none font-bold tracking-[0.1em] text-ink uppercase;
+}
+.wp-title > span {
+  @apply size-2.5 shrink-0 rounded-full bg-accent;
+}
+.wp-list {
+  @apply relative flex flex-col gap-3.5 pl-[46px] lg:grid lg:grid-cols-7 lg:gap-3 lg:pl-0;
+}
+.wp-list > li {
+  @apply relative;
+}
+/* Phones: a sand branch from the rail to each step. */
+.wp-list > li::before {
+  content: "";
+  @apply absolute top-1/2 -left-[30px] h-0.5 w-[30px] -translate-y-1/2 bg-rail lg:hidden;
+}
+/* Wide screens: an ink joint between neighbouring steps. */
+.wp-list > li:not(:last-child)::after {
+  content: "";
+  @apply absolute top-1/2 -right-3 hidden h-0.5 w-3 -translate-y-1/2 bg-ink lg:block;
+}
+.wp-step {
+  @apply flex h-11 w-full cursor-pointer items-center rounded-[10px] border-[1.5px] border-ink bg-card pl-[18px] font-mono text-[0.8125rem] leading-none font-bold text-ink uppercase lg:h-[62px] lg:flex-col lg:justify-center lg:gap-2 lg:pl-0 lg:text-[0.6875rem];
+}
+.wp-step:focus-visible {
+  @apply outline-2 outline-offset-2 outline-accent-strong;
+}
+.wp-step > span:first-child {
+  @apply w-10 shrink-0 text-left lg:w-auto;
+}
+.wp-step > span:last-child {
+  @apply tracking-[0.06em];
+}
+.wp-step[data-state="current"] {
+  @apply bg-accent;
+}
+.wp-step[data-state="done"] {
+  @apply border-accent bg-accent-soft;
+}
+.wp-rail-y {
+  @apply absolute top-[22px] bottom-[22px] left-4 w-0 lg:hidden;
+}
+.wp-rail-x {
+  /* 1px tall so its margin cannot collapse into the trace line's below */
+  @apply relative mx-[calc((100%-72px)/14)] mt-6 hidden h-px lg:block;
+}
+.wp-track,
+.wp-fill,
+.wp-dot,
+.wp-token {
+  @apply absolute rounded-full;
+}
+.wp-track {
+  @apply bg-rail;
+}
+.wp-fill {
+  @apply bg-accent;
+}
+.wp-dot {
+  @apply -translate-1/2 bg-rail;
+}
+.wp-token {
+  @apply grid size-[22px] -translate-1/2 place-items-center bg-accent/20;
+}
+.wp-token > span {
+  @apply rounded-full border-2 border-ink bg-accent;
+}
+.wp-rail-x > .wp-track {
+  @apply inset-x-0 top-0 h-0.5 -translate-y-1/2;
+}
+.wp-rail-x > .wp-fill {
+  @apply inset-x-0 top-0 h-[3px] origin-left -translate-y-1/2;
+}
+.wp-rail-x > .wp-dot {
+  @apply top-0 size-1.5;
+}
+.wp-rail-x > .wp-token {
+  @apply top-0;
+}
+.wp-rail-x > .wp-token > span {
+  @apply size-3;
+}
+.wp-rail-y > .wp-track {
+  @apply inset-y-0 left-0 w-0.5 -translate-x-1/2;
+}
+.wp-rail-y > .wp-fill {
+  @apply inset-y-0 left-0 w-[3px] origin-top -translate-x-1/2;
+}
+.wp-rail-y > .wp-dot {
+  @apply left-0 size-[7px];
+}
+.wp-rail-y > .wp-token {
+  @apply left-0;
+}
+.wp-rail-y > .wp-token > span {
+  @apply size-[13px];
+}
+.wp-captions {
+  @apply mt-5 border-t-[1.2px] border-rail pt-4 lg:border-t-0 lg:pt-0;
+}
+.wp-captions .wp-line {
+  @apply col-start-1 row-start-1 lg:flex lg:items-baseline lg:gap-3.5;
+}
+.wp-label {
+  @apply block font-mono text-xs font-bold tracking-[0.08em] text-accent-strong uppercase;
+}
+.wp-label.wp-ok {
+  @apply flex items-center gap-2 text-success;
+}
+.wp-phone-only {
+  @apply lg:hidden;
+}
+.wp-text {
+  @apply mt-1.5 block text-base leading-6 text-ink lg:mt-0 lg:text-[0.96875rem];
 }
